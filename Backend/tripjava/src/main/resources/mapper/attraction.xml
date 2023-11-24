@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="site.tripjava.tripjava.attraction.model.mapper.AttractionMapper">
+
+    <resultMap id="attractionInfo" type="attractionInfo">
+        <result column="content_id" property="contentId"></result>
+        <result column="title" property="title"></result>
+        <result column="addr1" property="addr"></result>
+        <result column="first_image" property="image"></result>
+        <result column="latitude" property="latitude"></result>
+        <result column="longitude" property="longitude"></result>
+        <result column="love" property="love"></result>
+        <result column="overview" property="description"></result>
+    </resultMap>
+
+    <resultMap id="sidoInfo" type="sido">
+        <result column="sido_code" property="sidoCode"></result>
+        <result column="sido_name" property="sidoName"></result>
+    </resultMap>
+    <!--
+    12 -> 관광지
+    14 -> 관광지
+    15 -> 축제정보
+    25 -> 관광지
+    28 -> 관광지
+    32 -> 숙소 정보
+    38 -> 관광지
+    39 -> 식당 정보
+
+    -->
+    <resultMap id="shortInfo" type="AttractionShortInfo">
+        <constructor>
+            <idArg column="content_id" javaType="Long"/>
+            <arg column="title" javaType="String"/>
+            <arg column="addr1" javaType="String"/>
+            <arg column="first_image" javaType="String"/>
+        </constructor>
+    </resultMap>
+
+
+
+    <select id="searchAttraction" parameterType="searchCondition" resultMap="attractionInfo">
+        select content_id, title, addr1, first_image, latitude, longitude, love
+        from attraction_info
+        where first_image != ''
+        <if test="contentType != null and contentType != ''">
+            AND content_type_id = #{contentType}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND title LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="sidoCode != null and sidoCode != ''">
+            AND sido_code = #{sidoCode}
+        </if>
+        <if test="contentType == null and keyword == null and sidoCode == null">
+            AND 1=1
+        </if>
+        order by love desc
+        limit 120
+    </select>
+
+    <!--    <select id="searchAttraction" parameterType="searchCondition" resultMap="attractionInfo">-->
+<!--        select content_id, title, addr1, first_image, latitude, longitude, love-->
+<!--        from attraction_info-->
+<!--        where first_image != ''-->
+<!--        <if test="contentType != null and contentType != ''">-->
+<!--            AND content_type_id = #{contentType}-->
+<!--        </if>-->
+<!--        <if test="keyword != null and keyword != ''">-->
+<!--            AND title LIKE CONCAT('%', #{keyword}, '%')-->
+<!--        </if>-->
+<!--        <if test="sidoCode != null and sidoCode != ''">-->
+<!--            AND sido_code = #{sidoCode}-->
+<!--        </if>-->
+<!--        order by love desc-->
+<!--        limit 120-->
+<!--    </select>-->
+
+    <select id="getSidoInfo"  resultMap="sidoInfo">
+        select sido_name, sido_code
+        from sido
+    </select>
+
+    <select id="getDetailInfo" parameterType="int" resultMap="attractionInfo">
+        select i.content_id, i.title, i.addr1, i.first_image, i.latitude, i.longitude, i.love, d.overview
+        from attraction_info i, attraction_description d
+        where i.content_id = d.content_id and i.content_id = #{content_id};
+    </select>
+
+    <select id="getAllInfosFindById" resultMap="shortInfo">
+        SELECT content_id, title, addr1, first_image
+        FROM your_table_name
+        WHERE content_id IN
+        <foreach item="contentId" collection="contentIdList" open="(" separator="," close=")">
+            #{contentId}
+        </foreach>
+    </select>
+</mapper>
